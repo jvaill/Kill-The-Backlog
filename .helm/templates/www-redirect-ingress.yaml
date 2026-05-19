@@ -12,10 +12,12 @@ metadata:
       return 301 https://{{ .Values.baseDomain }}$request_uri;
 spec:
   ingressClassName: nginx
+  {{- if .Values.tls.enabled }}
   tls:
     - hosts:
         - www.{{ .Values.baseDomain }}
-      secretName: {{ include "app.fullname" . }}-wildcard-tls
+      secretName: {{ include "app.tlsSecretName" . }}
+  {{- end }}
   rules:
     - host: www.{{ .Values.baseDomain }}
       http:

@@ -39,3 +39,7 @@ if ($request_method ~* "^(TRACE|TRACK|OPTIONS)$") {
   return 405;
 }
 {{- end -}}
+
+{{- define "app.tlsSecretName" -}}
+{{- default (printf "%s-wildcard-tls" (include "app.fullname" .)) .Values.tls.secretName -}}
+{{- end -}}

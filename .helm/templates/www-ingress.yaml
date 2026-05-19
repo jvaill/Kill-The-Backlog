@@ -17,10 +17,12 @@ metadata:
       rewrite ^(/[^.]*)/?$ $1/index.html break;
 spec:
   ingressClassName: nginx
+  {{- if .Values.tls.enabled }}
   tls:
     - hosts:
         - {{ .Values.baseDomain }}
-      secretName: {{ include "app.fullname" . }}-wildcard-tls
+      secretName: {{ include "app.tlsSecretName" . }}
+  {{- end }}
   rules:
     - host: {{ .Values.baseDomain }}
       http:

@@ -1,3 +1,4 @@
+{{- if and .Values.tls.enabled .Values.certManager.enabled -}}
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -6,10 +7,11 @@ metadata:
   labels:
     {{- include "app.labels" . | nindent 4 }}
 spec:
-  secretName: {{ include "app.fullname" . }}-wildcard-tls
+  secretName: {{ include "app.tlsSecretName" . }}
   issuerRef:
-    kind: ClusterIssuer
-    name: {{ .Values.clusterIssuerName }}
+    kind: {{ .Values.certManager.issuerRef.kind }}
+    name: {{ .Values.certManager.issuerRef.name }}
   dnsNames:
     - {{ .Values.baseDomain }}
     - "*.{{ .Values.baseDomain }}"
+{{- end }}

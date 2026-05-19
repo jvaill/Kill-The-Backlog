@@ -41,4 +41,10 @@ From the repo root, run `lint:fix` for a workspace package with `pnpm --filter` 
 
 Current status: `in development`
 
-The application is in early development with no users or deployment. Breaking changes and data migrations are not a concern.
+The application is in early development with no users or deployment. Breaking changes are acceptable by default.
+
+## Backward compatibility
+
+Do not preserve compatibility with old in-repo values, branch-local config, or unfinished implementation details. Update the callers, config, templates, tests, and docs to the new shape instead of adding fallback cases, compatibility branches, or migration shims.
+
+The exception is persisted data. Treat database migrations, saved user data, external API contracts, and deployed production behavior carefully, and plan explicit migrations when data may need to move between shapes.

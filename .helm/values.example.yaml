@@ -1,21 +1,29 @@
 fullnameOverride: ktb
 
-# This resource is global to the cluster and must be created ahead of time.
-clusterIssuerName: ktb-letsencrypt-issuer
-
 baseDomain: example.com
 
 wwwBucketHostname: example.cdn.com
 
+tls:
+  enabled: true
+  # Defaults to <release-fullname>-wildcard-tls when omitted.
+  secretName:
+
+certManager:
+  enabled: false
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt-dns01
+
 mainEnvVars:
-  ANTHROPIC_API_KEY:
-  DB_URL:
-  E2B_API_KEY:
-  GITHUB_OAUTH_CLIENT_ID:
-  GITHUB_OAUTH_CLIENT_SECRET:
+  ANTHROPIC_API_KEY: ""
+  DB_URL: ""
+  E2B_API_KEY: ""
+  GITHUB_OAUTH_CLIENT_ID: ""
+  GITHUB_OAUTH_CLIENT_SECRET: ""
   GITHUB_OAUTH_REDIRECT_URI: https://ktb.example.com/auth/github/callback
   MAIN_ORIGIN: https://ktb.example.com
-  REDIS_URL:
-  SESSION_SECRET:
-  E2B_TEMPLATE_NAME:
-  PROVIDER_API_KEY_ENCRYPTION_SECRET:
+  REDIS_URL: ""
+  SESSION_SECRET: ""
+  E2B_TEMPLATE_NAME: ""
+  PROVIDER_API_KEY_ENCRYPTION_SECRET: ""

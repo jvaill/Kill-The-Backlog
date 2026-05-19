@@ -11,10 +11,12 @@ metadata:
       {{- include "app.securityServerSnippet" . | nindent 6 }}
 spec:
   ingressClassName: nginx
+  {{- if .Values.tls.enabled }}
   tls:
     - hosts:
         - ktb.{{ .Values.baseDomain }}
-      secretName: {{ include "app.fullname" . }}-wildcard-tls
+      secretName: {{ include "app.tlsSecretName" . }}
+  {{- end }}
   rules:
     - host: ktb.{{ .Values.baseDomain }}
       http:

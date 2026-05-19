@@ -30,7 +30,33 @@ werf converge
 gcloud container clusters get-credentials <your_cluster_name>
 ```
 
-3. Install cert-manager:
+3. Choose a TLS setup.
+
+The Helm chart references a Kubernetes TLS secret by default. You can create that
+secret yourself, or enable the optional cert-manager `Certificate` resource and
+point it at an issuer that you manage separately.
+
+To bring your own certificate, create a TLS secret in the app namespace:
+
+```sh
+kubectl create secret tls <tls_secret_name> \
+  --namespace <app_namespace> \
+  --cert <path_to_tls_crt> \
+  --key <path_to_tls_key>
+```
+
+Configure the chart to use it:
+
+```yaml
+tls:
+  enabled: true
+  secretName: <tls_secret_name>
+
+certManager:
+  enabled: false
+```
+
+4. Optionally install cert-manager:
 
 ```sh
 # Request values copied from https://oneuptime.com/blog/post/2026-01-17-helm-cert-manager-tls-certificates/view
@@ -52,7 +78,7 @@ helm upgrade --install cert-manager cert-manager \
   --set global.leaderElection.namespace=cert-manager
 ```
 
-4. Verify cert-manager install:
+5. Verify cert-manager install:
 
 ```sh
 kubectl get pods -n cert-manager
@@ -60,9 +86,57 @@ kubectl get pods -n cert-manager
 
 You should see three pods running: cert-manager, cert-manager-cainjector, and cert-manager-webhook.
 
-5. Create a regional static IP in the GCP console.
+For GKE with CloudDNS DNS-01 validation, create the CloudDNS credentials secret
+in cert-manager's cluster resource namespace, which is `cert-manager` by default:
 
-6. Install ingress-nginx:
+```sh
+kubectl create secret generic clouddns-dns01-solver-svc-acct \
+  --namespace cert-manager \
+  --from-file=key.json=<path_to_service_account_key_json>
+```
+
+Then create a cluster-scoped issuer for your cluster:
+
+```yaml
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-dns01
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: you@example.com
+    privateKeySecretRef:
+      name: letsencrypt-dns01-account-key
+    solvers:
+      - dns01:
+          cloudDNS:
+            project: your-gcp-project-id
+            serviceAccountSecretRef:
+              name: clouddns-dns01-solver-svc-acct
+              key: key.json
+```
+
+Prefer Workload Identity over a static service account key for long-lived GKE
+clusters. If you do use a static key, keep it out of Helm values.
+
+Enable the chart's cert-manager `Certificate` resource after the issuer exists:
+
+```yaml
+tls:
+  enabled: true
+  secretName: <tls_secret_name>
+
+certManager:
+  enabled: true
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt-dns01
+```
+
+6. Create a regional static IP in the GCP console.
+
+7. Install ingress-nginx:
 
 ```sh
 # Request values copied from the ingress-nginx helm chart.
